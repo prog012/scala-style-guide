@@ -1,6 +1,6 @@
 # Databricks Scala Guide
 
-With over 500 contributors, Spark is to the best of our knowledge the largest open-source project in Big Data and the most active project written in Scala. This guide draws from our experience coaching and working with engineers contributing to Spark as well as our [Databricks](http://databricks.com/) engineering team.
+With over 800 contributors, Spark is to the best of our knowledge the largest open-source project in Big Data and the most active project written in Scala. This guide draws from our experience coaching and working with engineers contributing to Spark as well as our [Databricks](http://databricks.com/) engineering team.
 
 Code is __written once__ by its author, but __read and modified multiple times__ by lots of other engineers. As most bugs actually come from future modification of the code, we need to optimize our codebase for long-term, global readability and maintainability. The best way to achieve this is to write simple code.
 
@@ -68,7 +68,7 @@ Scala is an incredibly powerful language that is capable of many paradigms. We h
 ## <a name='history'>Document History</a>
 - 2015-03-16: initial version
 - 2015-05-25: added [override Modifier](#override_modifier) section
-
+- 2015-08-23: downgraded the severity of some rules from "do NOT" to "avoid"
 
 
 ## <a name='syntactic'>Syntactic Style</a>
@@ -116,7 +116,7 @@ We mostly follow Java's and Scala's standard naming conventions.
 
 "If an element consists of more than 30 subelements, it is highly probable that there is a serious problem" - [Refactoring in Large Software Projects](http://www.amazon.com/Refactoring-Large-Software-Projects-Restructurings/dp/0470858923).
 
-In general: 
+In general:
 
 - A method should contain less than 30 lines of code.
 - A class should contain less than 30 methods.
@@ -131,7 +131,7 @@ In general:
   }
   ```
 
-- For function declarations, use 4 space indentation for its parameters when they don't fit in a single line. Return types can be either on the same line as the last parameter, or put to next line with 2 space indent.
+- For method declarations, use 4 space indentation for its parameters when they don't fit in a single line. Return types can be either on the same line as the last parameter, or put to next line with 2 space indent.
   ```scala
   def newAPIHadoopFile[K, V, F <: NewInputFormat[K, V]](
       path: String,
@@ -139,9 +139,9 @@ In general:
       kClass: Class[K],
       vClass: Class[V],
       conf: Configuration = hadoopConfiguration): RDD[(K, V)] = {
-    // function body
+    // method body
   }
-  
+
   def newAPIHadoopFile[K, V, F <: NewInputFormat[K, V]](
       path: String,
       fClass: Class[F],
@@ -149,10 +149,10 @@ In general:
       vClass: Class[V],
       conf: Configuration = hadoopConfiguration)
     : RDD[(K, V)] = {
-    // function body
+    // method body
   }
   ```
-  
+
 - For classes whose header doesn't fit in a single line, put the extend on the next line with 2 space indent, and add a blank line after class header.
   ```scala
   class Foo(
@@ -161,7 +161,7 @@ In general:
       val param3: Array[Byte])
     extends FooInterface  // 2 space here
     with Logging {
-    
+
     def firstMethod(): Unit = { ... }  // blank line above
   }
   ```
@@ -172,7 +172,7 @@ In general:
   val plus     = "+"
   val minus    = "-"
   val multiply = "*"
-  
+
   // Do the following
   val plus = "+"
   val minus = "-"
@@ -193,7 +193,7 @@ In general:
 
 ### <a name='parentheses'>Parentheses</a>
 
-- Functions should be declared with parentheses, unless they are accessors that have no side-effect (state mutation, I/O operations are considered side-effects).
+- Methods should be declared with parentheses, unless they are accessors that have no side-effect (state mutation, I/O operations are considered side-effects).
   ```scala
   class Job {
     // Wrong: killJob changes state. Should have ().
@@ -203,17 +203,17 @@ In general:
     def killJob(): Unit
   }
   ```
-- Callsite should follow function declaration, i.e. if a function is declared with parentheses, call with parentheses.
+- Callsite should follow method declaration, i.e. if a method is declared with parentheses, call with parentheses.
   Note that this is not just syntactic. It can affect correctness when `apply` is defined in the return object:
   ```scala
   class Foo {
     def apply(): Int
   }
-  
+
   class Bar {
     def foo: Foo
   }
-  
+
   new Bar().foo  // This returns a Foo
   new Bar().foo()  // This returns an Int!
   ```
@@ -227,7 +227,7 @@ Put curly braces even around one-line conditional or loop statements. The only e
 if (true) {
   println("Wow!")
 }
- 
+
 // Correct:
 if (true) statement1 else statement2
 
@@ -241,7 +241,7 @@ try {
 // Wrong:
 if (true)
   println("Wow!")
-  
+
 // Wrong:
 try foo() catch {
   ...
@@ -264,13 +264,13 @@ val longValue = 5432l  // Do NOT do this
 Use Java docs style instead of Scala docs style.
 ```scala
 /** This is a correct one-liner, short description. */
- 
+
 /**
  * This is correct multi-line JavaDoc comment. And
  * this is my second line, and if I keep typing, this would be
  * my third line.
  */
- 
+
 /** In Spark, we don't use the ScalaDoc style so this
   * is not correct.
   */
@@ -286,13 +286,13 @@ class DataFrame {
   ///////////////////////////////////////////////////////////////////////////
   // DataFrame operations
   ///////////////////////////////////////////////////////////////////////////
-  
+
   ...
-  
+
   ///////////////////////////////////////////////////////////////////////////
   // RDD operations
   ///////////////////////////////////////////////////////////////////////////
-  
+
   ...
 }
 ```
@@ -302,7 +302,7 @@ Of course, the situation in which a class grows this long is strongly discourage
 
 ### <a name='imports'>Imports</a>
 
-- __Do NOT use wildcard imports__, unless you are importing more than 6 entities, or implicit methods. Wildcard imports make the code less robust to external changes.
+- __Avoid using wildcard imports__, unless you are importing more than 6 entities, or implicit methods. Wildcard imports make the code less robust to external changes.
 - Always import packages using absolute paths (e.g. `scala.util.Random`) instead of relative ones (e.g. `util.Random`).
 - In addition, sort imports in the following order:
   * `java.*` and `javax.*`
@@ -315,7 +315,7 @@ Of course, the situation in which a class grows this long is strongly discourage
   ```
   java
   javax
-  _______ blank line _______ 
+  _______ blank line _______
   scala
   _______ blank line _______
   all other imports
@@ -326,7 +326,7 @@ Of course, the situation in which a class grows this long is strongly discourage
 
 ### <a name='pattern-matching'>Pattern Matching</a>
 
-- For functions whose entire body is a pattern match expression, put the match on the same line as the function declaration if possible to reduce one level of indentation.
+- For method whose entire body is a pattern match expression, put the match on the same line as the method declaration if possible to reduce one level of indentation.
   ```scala
   def test(msg: Message): Unit = msg match {
     case ...
@@ -346,11 +346,11 @@ Of course, the situation in which a class grows this long is strongly discourage
     case b: Bar =>  ...
   }
   ```
- 
+
 
 ### <a name='infix'>Infix Methods</a>
 
-__Do NOT use infix notation__ for methods that aren't symbolic methods (i.e. operator overloading).
+__Avoid infix notation__ for methods that aren't symbolic methods (i.e. operator overloading).
 ```scala
 // Correct
 list.map(func)
@@ -370,7 +370,7 @@ arrayBuffer += elem
 
 ### <a name='apply_method'>apply Method</a>
 
-Avoid defining apply methods on classes. These methods tend to make the code less readable, especially for people less familiar with Scala. It is also harder for IDEs (or grep) to trace. In the worst case, it can also affect correctness of the code in surprising ways, as demonstrated in [Parentheses](#parentheses). It is however ok to define them in companion objects as factory methods. 
+Avoid defining apply methods on classes. These methods tend to make the code less readable, especially for people less familiar with Scala. It is also harder for IDEs (or grep) to trace. In the worst case, it can also affect correctness of the code in surprising ways, as demonstrated in [Parentheses](#parentheses). It is however ok to define them in companion objects as factory methods.
 
 
 ### <a name='override_modifier'>override Modifier</a>
@@ -415,9 +415,9 @@ class MyClass {
 
 ### <a name='call_by_name'>Call by Name</a>
 
-__Do NOT use call by name__. Use `() => T` explicitly.
+__Avoid using call by name__. Use `() => T` explicitly.
 
-Background: Scala allows function parameters to be defined by-name, e.g. the following would work:
+Background: Scala allows method parameters to be defined by-name, e.g. the following would work:
 ```scala
 def print(value: => Int): Unit = {
   println(value)
@@ -432,12 +432,12 @@ def inc(): Int = {
 
 print(inc())
 ```
-in the above code, `inc()` is passed into `print` as a closure and is only executed (twice) in the print method, rather than being passed in as a value `1`. The main problem with call-by-name is that the caller cannot differentiate between call-by-name and call-by-value, and thus cannot know for sure whether the expression will be executed or not (or maybe worse, multiple times). This is especially dangerous for expressions that have side-effect.
+in the above code, `inc()` is passed into `print` as a closure and is executed (twice) in the print method, rather than being passed in as a value `1`. The main problem with call-by-name is that the caller cannot differentiate between call-by-name and call-by-value, and thus cannot know for sure whether the expression will be executed or not (or maybe worse, multiple times). This is especially dangerous for expressions that have side-effect.
 
 
 ### <a name='multi-param-list'>Multiple Parameter Lists</a>
 
-__Do NOT use multiple parameter lists__. They complicate operator overloading, and can confuse programmers less familiar with Scala. For example:
+__Avoid using multiple parameter lists__. They complicate operator overloading, and can confuse programmers less familiar with Scala. For example:
 
 ```scala
 // Avoid this!
@@ -449,10 +449,10 @@ One notable exception is the use of a 2nd parameter list for implicits when defi
 
 ### <a name='symbolic_methods'>Symbolic Methods (Operator Overloading)</a>
 
-__Do NOT use symbolic method names__, unless you are defining them for natural arithmetic operations (e.g. `+`, `-`, `*`, `/`). Under no other circumstances should they be used. Symbolic method names make it very hard to understand the intent of the functions. Consider the following two examples:
+__Do NOT use symbolic method names__, unless you are defining them for natural arithmetic operations (e.g. `+`, `-`, `*`, `/`). Under no other circumstances should they be used. Symbolic method names make it very hard to understand the intent of the methods. Consider the following two examples:
 ```scala
 // symbolic method names are hard to understand
-channel ! msg  
+channel ! msg
 stream1 >>= stream2
 
 // self-evident what is going on
@@ -472,7 +472,7 @@ Scala type inference, especially left-side type inference and closure inference,
 
 ### <a name='return'>Return Statements</a>
 
-__Do NOT use return in closures__. `return` is turned into ``try/catch`` of ``scala.runtime.NonLocalReturnControl`` by the compiler. This can lead to unexpected behaviors. Consider the following example:
+__Avoid using return in closures__. `return` is turned into ``try/catch`` of ``scala.runtime.NonLocalReturnControl`` by the compiler. This can lead to unexpected behaviors. Consider the following example:
   ```scala
   def receive(rpc: WebSocketRPC): Option[Response] = {
     tableFut.onComplete { table =>
@@ -482,8 +482,8 @@ __Do NOT use return in closures__. `return` is turned into ``try/catch`` of ``sc
     }
   }
   ```
-  the `.onComplete` function takes the anonymous closure `{ table => ... }` and passes it to a a different thread. This closure eventually throws the `NonLocalReturnControl` exception that is captured __in a different thread__ . It has no effect on the poor function being executed here.
-  
+  the `.onComplete` method takes the anonymous closure `{ table => ... }` and passes it to a a different thread. This closure eventually throws the `NonLocalReturnControl` exception that is captured __in a different thread__ . It has no effect on the poor method being executed here.
+
 However, there are a few cases where `return` is preferred.
 
 - Use `return` as a guard to simplify control flow without adding a level of indentation
@@ -507,9 +507,9 @@ However, there are a few cases where `return` is preferred.
 
 ### <a name='recursion'>Recursion and Tail Recursion</a>
 
-__Do NOT use recursion__, unless the problem can be naturally framed recursively (e.g. graph traversal, tree traversal).
+__Avoid using recursion__, unless the problem can be naturally framed recursively (e.g. graph traversal, tree traversal).
 
-For functions that are meant to be tail recursive, apply `@tailrec` annotation to make sure the compiler can check it is tail recursive (you will be surprised how often seemingly tail recursive code is actually not tail recursive due to the use of closures and functional transformations.)
+For methods that are meant to be tail recursive, apply `@tailrec` annotation to make sure the compiler can check it is tail recursive (you will be surprised how often seemingly tail recursive code is actually not tail recursive due to the use of closures and functional transformations.)
 
 Most code is easier to reason about with a simple loop and explicit state machines. Expressing it with tail recursions (and accumulators) can make it more verbose and harder to understand.  For example, the following imperative code is more readable than the tail recursive version:
 
@@ -542,7 +542,7 @@ def max(data: Array[Int]): Int = {
 
 ### <a name='implicits'>Implicits</a>
 
-__Do NOT use implicits__, unless:
+__Avoid using implicits__, unless:
 - you are building a domain-specific language
 - you are using it for implicit type parameters (e.g. `ClassTag`, `TypeTag`)
 - you are using it private to your own class to reduce verbosity of converting from one type to another (e.g. Scala closure to Java closure)
@@ -583,7 +583,7 @@ object ImplicitHolder {
 - Do NOT use `Try` in APIs, i.e. do NOT return Try in any methods.Prefer explicitly throwing exceptions for abnormal execution and Java style try/catch for exception handling.
 
   Background information: Scala provides monadic error handling (through `Try`, `Success`, and `Failure`) that facilitates chaining of actions. However, we found from our experience that the use of it often leads to more levels of nesting that are harder to read. In addition, it is often unclear what the semantics are for expected errors vs exceptions because those are not encoded in `Try`. As a result, we discourage the use of `Try` for error handling. In particular:
-  
+
   As a contrived example:
   ```scala
   class UserService {
@@ -612,20 +612,20 @@ object ImplicitHolder {
 - When constructing an `Option`, use `Option` rather than `Some` to guard against `null` values.
   ```scala
   def myMethod1(input: String): Option[String] = Option(transform(input))
-  
-  // This is not as robust because transform can return null, and then 
+
+  // This is not as robust because transform can return null, and then
   // myMethod2 will return Some(null).
   def myMethod2(input: String): Option[String] = Some(transform(input))
   ```
 - Do not use None to represent exceptions. Instead, throw exceptions explicitly.
 - Do not call `get` directly on an `Option`, unless you know absolutely for sure the `Option` has some value.
-  
+
 
 ### <a name='chaining'>Monadic Chaining</a>
 
 One of Scala's powerful features is monadic chaining. Almost everything (e.g. collections, Option, Future, Try) is a monad and operations on them can be chained together. This is an incredibly powerful concept, but chaining should be used sparingly. In particular:
 
-- Do NOT chain (and/or nest) more than 3 operations.
+- Avoid chaining (and/or nesting) more than 3 operations.
 - If it takes more than 5 seconds to figure out what the logic is, try hard to think about how you can expression the same functionality without using monadic chaining. As a general rule, watch out for flatMaps and folds.
 - A chain should almost always be broken after a flatMap (because of the type change).
 
@@ -648,7 +648,7 @@ def getAddress(name: String): Option[String] = {
   if (!database.contains(name)) {
     return None
   }
-  
+
   database(name).data.get("address") match {
     case Some(null) => None  // handle null value
     case Some(addr) => Option(addr)
@@ -668,7 +668,7 @@ __Prefer `java.util.concurrent.ConcurrentHashMap` over `scala.collection.concurr
 
 ### <a name='concurrency-sync-vs-map'>Explicit Synchronization vs Concurrent Collections</a>
 
-There are 3 recommended ways to make concurrent accesses to shared states safe. __Do NOT mix them__ because that could make the program very hard to reason about and lead to deadlocks. 
+There are 3 recommended ways to make concurrent accesses to shared states safe. __Do NOT mix them__ because that could make the program very hard to reason about and lead to deadlocks.
 
 1. `java.util.concurrent.ConcurrentHashMap`: Use when all states are captured in a map, and high degree of contention is expected.
   ```scala
@@ -677,7 +677,7 @@ There are 3 recommended ways to make concurrent accesses to shared states safe. 
 
 2. `java.util.Collections.synchronizedMap`: Use when all states are captured in a map, and contention is not expected but you still want to make code safe. In case of no contention, the JVM JIT compiler is able to remove the synchronization overhead via biased locking.
   ```scala
-  private[this] val map = java.util.Collections.synchronizedMap(new java.util.HashMap[String, String]) 
+  private[this] val map = java.util.Collections.synchronizedMap(new java.util.HashMap[String, String])
   ```
 
 3. Explicit synchronization by synchronizing all critical sections: can used to guard multiple variables. Similar to 2, the JVM JIT compiler can remove the synchronization overhead via biased locking.
@@ -695,11 +695,11 @@ There are 3 recommended ways to make concurrent accesses to shared states safe. 
 
 Note that for case 1 and case 2, do not let views or iterators of the collections escape the protected area. This can happen in non-obvious ways, e.g. when returning `Map.keySet` or `Map.values`. If views or values are required to pass around, make a copy of the data.
   ```scala
-  val map = java.util.Collections.synchronizedMap(new java.util.HashMap[String, String]) 
-  
+  val map = java.util.Collections.synchronizedMap(new java.util.HashMap[String, String])
+
   // This is broken!
   def values: Iterable[String] = map.values
-  
+
   // Instead, copy the elements
   def values: Iterable[String] = map.synchronized { Seq(map.values: _*) }
   ```
@@ -718,7 +718,7 @@ Prefer Atomic variables over explicit synchronization when: (1) all critical upd
   if (!initialized.getAndSet(true)) {
     ...
   }
-  
+
   // poor: less clear what is guarded by synchronization, may unnecessarily synchronize
   val initialized = false
   ...
@@ -754,7 +754,7 @@ class Foo {
 
 In general, concurrency and synchronization logic should be isolated and contained as much as possible. This effectively means:
 
-- Avoid surfacing the internals of synchronization primitives in APIs, in user-facing functions, callbacks.
+- Avoid surfacing the internals of synchronization primitives in APIs, in user-facing methods, callbacks.
 - For complex modules, create a small, inner module that capture the concurrency primitives.
 
 
@@ -783,16 +783,16 @@ val newArr = list.zipWithIndex.map { case (elem, i) =>
 // This is a high performance version of the above
 val newArr = new Array[Int](arr.length)
 var i = 0
-val len = newArr.length 
+val len = newArr.length
 while (i < len) {
-  newArr(i) = if (i % 2 == 0) 0 else arr(i) 
+  newArr(i) = if (i % 2 == 0) 0 else arr(i)
   i += 1
 }
 ```
 
 ### <a name='perf-option'>Option and null</a>
 
-For performance sensitive code, prefer `null` over `Option`, in order to avoid virtual function calls and boxing. Label the nullable fields clearly with Nullable.
+For performance sensitive code, prefer `null` over `Option`, in order to avoid virtual method calls and boxing. Label the nullable fields clearly with Nullable.
 ```scala
 class Foo {
   @javax.annotation.Nullable
@@ -806,7 +806,7 @@ For performance sensitive code, prefer Java collection library over Scala ones, 
 
 ### <a name='perf-private'>private[this]</a>
 
-For performance sensitive code, prefer `private[this]` over `private`. `private[this]` generates a field, rather than creating an accessor method. In our experience, the JVM JIT compiler cannot always inline `private` field accessor methods, and thus it is safer to use `private[this]` to ensure no virtual function call for accessing a field.
+For performance sensitive code, prefer `private[this]` over `private`. `private[this]` generates a field, rather than creating an accessor method. In our experience, the JVM JIT compiler cannot always inline `private` field accessor methods, and thus it is safer to use `private[this]` to ensure no virtual method call for accessing a field.
 ```scala
 class MyClass {
   private val field1 = ...
@@ -815,7 +815,7 @@ class MyClass {
   def perfSensitiveMethod(): Unit = {
     var i = 0
     while (i < 1000000) {
-      field1  // This might invoke a virtual function call
+      field1  // This might invoke a virtual method call
       field2  // This is just a field access
       i += 1
     }
@@ -894,21 +894,21 @@ Do NOT use multi-parameter lists.
   class Database {
     @scala.annotation.varargs
     def remove(elems: String*): Unit = ...
-    
+
     // Adding this will break source compatibility for no-arg remove() call.
     @scala.annotation.varargs
     def remove(elems: People*): Unit = ...
   }
-  
+
   // This won't compile anymore because it is ambiguous
-  new Database().remove()  
+  new Database().remove()
   ```
   Instead, define an explicit first parameter followed by vararg:
   ```scala
   class Database {
     @scala.annotation.varargs
     def remove(elems: String*): Unit = ...
-    
+
     // The following is OK.
     @scala.annotation.varargs
     def remove(elem: People, elems: People*): Unit = ...
@@ -918,10 +918,10 @@ Do NOT use multi-parameter lists.
 
 ### <a name='java-implicits'>Implicits</a>
 
-Do NOT use implicits, for a class or function. This includes `ClassTag`, `TypeTag`.
+Do NOT use implicits, for a class or method. This includes `ClassTag`, `TypeTag`.
 ```scala
 class JavaFriendlyAPI {
-  // This is NOT Java friendly, since the function contains an implicit parameter (ClassTag).
+  // This is NOT Java friendly, since the method contains an implicit parameter (ClassTag).
   def convertTo[T: ClassTag](): T
 }
 ```
@@ -933,7 +933,7 @@ There are a few things to watch out for when it comes to companion objects and s
 - Companion objects are awkward to use in Java (a companion object `Foo` is a static field `MODULE$` of type `Foo$` in class `Foo$`).
   ```scala
   object Foo
-  
+
   // equivalent to the following Java code
   public class Foo$ {
     Foo$ MODULE$ = // instantiation of the object
@@ -947,12 +947,12 @@ There are a few things to watch out for when it comes to companion objects and s
   class Foo {
     def method2(): Unit = { ... }
   }
-  
+
   object Foo {
     def method1(): Unit = { ... }  // a static method Foo.method1 is created in bytecode
     def method2(): Unit = { ... }  // a static method Foo.method1 is NOT created in bytecode
   }
-  
+
   // FooJavaTest.java (in test/scala/com/databricks/...)
   public class FooJavaTest {
     public static compileTest() {
@@ -965,7 +965,7 @@ There are a few things to watch out for when it comes to companion objects and s
 - A case object (or even just plain companion object) MyClass is actually not of type MyClass
   ```scala
   case object MyClass
-  
+
   // Test.java
   if (MyClass$.MODULE instanceof MyClass) {
     // The above condition is always false
